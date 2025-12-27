@@ -53,10 +53,20 @@ st.sidebar.subheader("Podatki o potniku")
 input_data['Flight Distance'] = st.sidebar.number_input("Flight Distance", value=1000)
 input_data['Age'] = st.sidebar.slider("Starost", 7, 85, 35)
 
-# Binarne spremenljivke
-input_data['Customer Type_disloyal Customer'] = st.sidebar.checkbox("Disloyal Customer (1=Da, 0=Ne)")
-input_data['Type of Travel_Personal Travel'] = st.sidebar.checkbox("Personal Travel (1=Da, 0=Ne)")
-input_data['Class_Eco'] = st.sidebar.checkbox("Economy Class (1=Da, 0=Ne)")
+# Binarne spremenljivke (Bolj intuitivna izbira)
+st.sidebar.subheader("Kategorije potovanja")
+
+# 1. Tip stranke
+cust_type = st.sidebar.radio("Tip stranke:", ["Zvesta stranka (Loyal)", "Nezvesta stranka (Disloyal)"])
+input_data['Customer Type_disloyal Customer'] = 1 if cust_type == "Nezvesta stranka (Disloyal)" else 0
+
+# 2. Namen potovanja
+travel_purpose = st.sidebar.radio("Namen potovanja:", ["Poslovno potovanje", "Osebno potovanje"])
+input_data['Type of Travel_Personal Travel'] = 1 if travel_purpose == "Osebno potovanje" else 0
+
+# 3. Potovalni razred
+travel_class = st.sidebar.selectbox("Potovalni razred:", ["Business / Eco Plus", "Eco"])
+input_data['Class_Eco'] = 1 if travel_class == "Eco" else 0
 
 # Pretvori v DataFrame v pravilnem vrstnem redu
 input_df = pd.DataFrame([input_data])[top_15_features]
