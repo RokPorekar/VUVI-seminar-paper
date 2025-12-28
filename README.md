@@ -13,6 +13,7 @@ Za zagon aplikacije potrebujete nameščeno okolje **Python**
 
 - `streamlit` (za uporabniški vmesnik)
 - `pandas` in `numpy` (za obdelavo podatkov)
+- `scipy` (za statistične teste, porazdelitve)
 - `scikit-learn` (za izvajanje modelov)
 - `joblib` (za nalaganje shranjenih modelov)
 - `matplotlib` in `seaborn` (za vizualizacijo grafov)
@@ -25,7 +26,7 @@ Za zagon aplikacije potrebujete nameščeno okolje **Python**
 (ali **Anaconda Prompt**) in zaženite naslednji ukaz:
 
 ```bash
-pip install streamlit pandas numpy scikit-learn joblib matplotlib seaborn
+pip install streamlit pandas numpy scikit-learn scipy joblib matplotlib seaborn
 ```
 
 ## 3. Struktura datotek
