@@ -9,7 +9,6 @@ import seaborn as sns
 st.set_page_config(page_title="Flight Satisfaction Optimizer", layout="wide")
 st.title("Optimizacija zadovoljstva potnikov")
 
-# Točen seznam iz tvojega modela
 top_15_features = [
     'Online boarding', 'Inflight wifi service', 'Inflight entertainment', 
     'Seat comfort', 'Flight Distance', 'Leg room service', 
@@ -17,6 +16,24 @@ top_15_features = [
     'Cleanliness', 'Checkin service', 'Customer Type_disloyal Customer', 
     'Type of Travel_Personal Travel', 'Class_Eco'
 ]
+
+regression_features = [
+    'Online boarding',
+    'Inflight wifi service',
+    'Inflight entertainment',
+    'Seat comfort',
+    'Flight Distance',
+    'Leg room service',
+    'Ease of Online booking',
+    'Age',
+    'On-board service',
+    'Baggage handling',
+    'Cleanliness',
+    'Checkin service',
+    'Departure Delay in Minutes',
+    'Arrival Delay in Minutes'
+]
+
 
 # 2. NALAGANJE MODELOV 
 @st.cache_resource
@@ -28,6 +45,17 @@ def load_models():
     }
 
 models_dict = load_models()
+
+@st.cache_resource
+def load_regression_models():
+    return {
+        "Gradient Boosting (Regresija)": joblib.load("classification_models/model_GB_reg.pkl"),
+        "Random Forest (Regresija)": joblib.load("classification_models/model_RF_reg.pkl"),
+        "Ridge Regression": joblib.load("classification_models/model_Ridge_reg.pkl")
+    }
+
+reg_models = load_regression_models()
+
 
 # 3. STRANSKA VRSTICA (Side Bar) 
 st.sidebar.header("Izbira modela")
@@ -71,8 +99,28 @@ input_data['Class_Eco'] = 1 if travel_class == "Eco" else 0
 # Pretvori v DataFrame v pravilnem vrstnem redu
 input_df = pd.DataFrame([input_data])[top_15_features]
 
+st.sidebar.subheader("Zamude leta (za regresijo)")
+
+input_data['Departure Delay in Minutes'] = st.sidebar.number_input(
+    "Departure Delay (min)",
+    min_value=0,
+    value=0
+)
+
+input_data['Arrival Delay in Minutes'] = st.sidebar.number_input(
+    "Arrival Delay (min)",
+    min_value=0,
+    value=0
+)
+
+
 # 4. OSREDNJI DEL: NAPOVED 
-tab1, tab2 = st.tabs(["Posamezna Napoved", "Skupinska Napoved & Optimizacija"])
+tab1, tab2, tab3 = st.tabs([
+    "Klasifikacija – Posamezna napoved",
+    "Klasifikacija – Simulacija & optimizacija",
+    "Regresija – Napoved zadovoljstva"
+])
+
 
 with tab1:
     col1, col2 = st.columns(2)
@@ -235,3 +283,86 @@ with tab2:
     ax_cat.set_title('Primerjava vpliva binarnih kategorij na trenutni vzorec')
     ax_cat.legend()
     st.pyplot(fig_cat)
+
+with tab3:
+    st.subheader("Regresija: napoved numeričnega zadovoljstva potnika")
+    
+    st.info(
+        "Ta del aplikacije napoveduje **numerični indeks zadovoljstva (0–1)** "
+        "na podlagi enakih vhodnih spremenljivk kot pri klasifikaciji."
+    )
+
+    # Izbira regresijskega modela
+    reg_model_name = st.selectbox(
+        "Izberi regresijski model:",
+        list(reg_models.keys())
+    )
+    reg_model = reg_models[reg_model_name]
+
+    # Napoved
+    input_df_reg = pd.DataFrame([input_data])[regression_features]
+
+    reg_pred = reg_model.predict(input_df_reg)[0]
+
+
+    # Prikaz rezultata
+    st.metric(
+        label="Napovedan indeks zadovoljstva",
+        value=f"{reg_pred:.3f}"
+    )
+
+    # Interpretacija
+    if reg_pred >= 0.7:
+        st.success("Zelo visoko pričakovano zadovoljstvo")
+    elif reg_pred >= 0.4:
+        st.warning("Srednje pričakovano zadovoljstvo")
+    else:
+        st.error("Nizko pričakovano zadovoljstvo")
+
+    st.write("---")
+
+    # SIMULACIJA VPLIVA STORITVE (regresija)
+    st.subheader("Simulacija vpliva posamezne storitve (regresija)")
+
+    target_sim_reg = st.selectbox(
+        "Izberi storitev:",
+        service_cols,
+        key="reg_service"
+    )
+
+    sim_range = [1, 2, 3, 4, 5]
+    sim_values = []
+
+    for val in sim_range:
+        temp_df = input_df_reg.copy()
+        temp_df[target_sim_reg] = val
+
+        sim_values.append(reg_model.predict(temp_df)[0])
+
+    fig_reg, ax_reg = plt.subplots(figsize=(9, 4))
+    ax_reg.plot(sim_range, sim_values, marker='o', linewidth=2)
+    ax_reg.set_xticks(sim_range)
+    ax_reg.set_ylim(0, 1)
+    ax_reg.set_xlabel(f"Nastavljena ocena: {target_sim_reg}")
+    ax_reg.set_ylabel("Napovedan indeks zadovoljstva")
+    ax_reg.set_title("Vpliv storitve na numerično zadovoljstvo")
+    ax_reg.grid(True, alpha=0.3)
+
+    for i, v in enumerate(sim_values):
+        ax_reg.text(sim_range[i], v + 0.02, f"{v:.2f}", ha='center')
+
+    st.pyplot(fig_reg)
+
+    # IZVOZ CSV
+    export_reg = input_df.copy()
+    export_reg["Predicted_Satisfaction_Index"] = reg_pred
+    export_reg["Regression_Model"] = reg_model_name
+
+    csv_reg = export_reg.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Prenesi regresijski scenarij (CSV)",
+        data=csv_reg,
+        file_name="regresija_zadovoljstvo.csv",
+        mime="text/csv"
+    )
