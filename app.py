@@ -58,11 +58,6 @@ reg_models = load_regression_models()
 
 
 # 3. STRANSKA VRSTICA (Side Bar) 
-st.sidebar.header("Izbira modela")
-selected_model_name = st.sidebar.selectbox("Model:", list(models_dict.keys()))
-model = models_dict[selected_model_name]
-
-st.sidebar.divider()
 st.sidebar.header("Vnos parametrov")
 
 input_data = {}
@@ -115,14 +110,18 @@ input_data['Arrival Delay in Minutes'] = st.sidebar.number_input(
 
 
 # 4. OSREDNJI DEL: NAPOVED 
-tab1, tab2, tab3 = st.tabs([
-    "Klasifikacija – Posamezna napoved",
-    "Klasifikacija – Simulacija & optimizacija",
+tab1, tab2 = st.tabs([
+    "Klasifikacija – Napoved zadovoljstva, simulacija, optimizacija",
     "Regresija – Napoved zadovoljstva"
 ])
 
 
 with tab1:
+
+    st.subheader("Izbira modela")
+    selected_model_name = st.selectbox("Model:", list(models_dict.keys()))
+    model = models_dict[selected_model_name]
+
     col1, col2 = st.columns(2)
     
     with col1:
@@ -174,10 +173,9 @@ with tab1:
             
         st.pyplot(fig)
 
-with tab2:
     st.subheader("Simulacija optimizacije")
     
-    # 1. DEL: SIMULACIJA STORITEV (Tvoja obstoječa koda z izboljšavami)
+    # 1. DEL: SIMULACIJA STORITEV
     target_sim = st.selectbox("Analiziraj vpliv spremembe za:", service_cols)
     
     sim_range = [1, 2, 3, 4, 5]
@@ -205,9 +203,9 @@ with tab2:
         ax2.text(sim_range[i], v + 0.03, f"{v:.1%}", ha='center', fontweight='bold')
     
     st.pyplot(fig2)
-    st.info(f"💡 **Nasvet:** Graf prikazuje točko prevoja, kjer investicija v '{target_sim}' dejansko spremeni potnika iz nezadovoljnega v zadovoljnega.")
+    st.info(f" **Nasvet:** Graf prikazuje točko prevoja, kjer investicija v '{target_sim}' dejansko spremeni potnika iz nezadovoljnega v zadovoljnega.")
 
-    # 2. DEL: SIMULACIJA PODATKOV O POTNIKU (Novo!) 
+    # 2. DEL: SIMULACIJA PODATKOV O POTNIKU
     st.divider()
     st.subheader("Simulacija demografskih in potovalnih faktorjev")
     st.write("Preverite, kako na zadovoljstvo vplivajo faktorji, na katere podjetje nima neposrednega vpliva, a so ključni za segmentacijo.")
@@ -284,7 +282,7 @@ with tab2:
     ax_cat.legend()
     st.pyplot(fig_cat)
 
-with tab3:
+with tab2:
     st.subheader("Regresija: napoved numeričnega zadovoljstva potnika")
     
     st.info(
