@@ -69,7 +69,9 @@ service_cols = ['Online boarding', 'Inflight wifi service', 'Inflight entertainm
                 'On-board service', 'Baggage handling', 'Cleanliness', 'Checkin service']
 
 for col in service_cols:
-    input_data[col] = st.sidebar.slider(col, 1, 5, 3)
+    if col == 'Baggage handling':
+        input_data[col] = st.sidebar.slider(col, 1, 5, 3)
+    input_data[col] = st.sidebar.slider(col, 0, 5, 3)
 
 # Številčni vnosi
 st.sidebar.subheader("Podatki o potniku")
@@ -162,7 +164,7 @@ with tab1:
         bars = ax.barh(list(current_scores.keys()), list(current_scores.values()), color='skyblue')
         
         # Nastavitev osi od 1 do 5
-        ax.set_xlim(1, 5) 
+        ax.set_xlim(0, 5) 
         ax.set_xticks([1, 2, 3, 4, 5])
         ax.set_title("Trenutni profil ocen potnika")
         
@@ -178,7 +180,7 @@ with tab1:
     # 1. DEL: SIMULACIJA STORITEV
     target_sim = st.selectbox("Analiziraj vpliv spremembe za:", service_cols)
     
-    sim_range = [1, 2, 3, 4, 5]
+    sim_range = [0, 1, 2, 3, 4, 5]
     sim_values = []
     for val in sim_range:
         temp_df = input_df.copy()
@@ -190,8 +192,8 @@ with tab1:
     ax2.fill_between(sim_range, sim_values, color='green', alpha=0.1)
     ax2.axhline(y=0.5, color='red', linestyle='--', alpha=0.6, label="Meja zadovoljstva (50%)")
     
-    ax2.set_xlim(1, 5)
-    ax2.set_xticks([1, 2, 3, 4, 5])
+    ax2.set_xlim(0, 5)
+    ax2.set_xticks([0, 1, 2, 3, 4, 5])
     ax2.set_ylim(0, 1.05)
     ax2.set_xlabel(f"Nastavljena ocena za: {target_sim}")
     ax2.set_ylabel("Verjetnost zadovoljstva")
