@@ -99,3 +99,8 @@ Demografski vplivi:
 
 - Spodaj si lahko ogledate, kako starost, razdalja leta in tip potovanja vplivajo
 na končni rezultat.
+
+## Povezava do delujoče aplikacije
+```
+https://vuvi-seminar-paper-2kgwietgodnrzc7vvxskwq.streamlit.app/
+```
